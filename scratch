@@ -1,0 +1,7 @@
+
+
+* Limited in current: default is 100mA \\
+  the device can ask for up to 500mA
+
+* Suspend mode requires device to use very little current \\ 
+	$500 \mu A$  (but practically you can ignore this)

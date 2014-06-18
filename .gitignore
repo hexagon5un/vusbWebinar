@@ -1,0 +1,10 @@
+v-usb/
+utils/
+Makefile
+images/
+*.pdf
+*.pyg
+*.tex
+
+usbhid_commands
+hidrd/

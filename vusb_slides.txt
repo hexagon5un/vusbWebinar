@@ -1,0 +1,424 @@
+@@@@@@@@@@@@@@@@@@@@@@@@@
+Build your Own USB Devices
+@@@@@@@@@@@@@@@@@@@@@@@@@
+
++++++++++++++++++++++++++++++++
+AVR Microcontrollers and the V-USB Library
++++++++++++++++++++++++++++++++
+
+Motivation
+++++++++++
+
+Rolling Your Own
+================
+
+Why?
+-------
+
+* Parallel port is dead, serial port is emulated
+
+* Compatibility
+
+* Make what you want
+
+* Fun
+
+
+Why V-USB?
+----------
+
+* Software-emulated USB?  Limited to low-speed devices?
+
+* Cheap, hackable, and you'll learn a lot
+
+* Can run on very minimal hardware 
+
+
+
+
+USB Background
+++++++++++++++
+
+
+
+
+USB: Universal Serial Bus
+=========================
+
+USB (A Bunch of New Words)
+-----------------
+
+* \emph{Host}: Your computer
+
+* \emph{Function}: The USB function on your device
+
+* \emph{Endpoint}: A data source or sink (on your device)
+
+* \emph{Control Endpoint}: Endpoint 0.  \\
+  Must be present, two-way, used to control the device.
+
+* Human Interface Device (HID) 
+
+
+Wiring: The Physical Layer
+==========================
+
+
+* Pull apart a USB cable: 4 colorful wires
+
+
+* White \& Green: \com{Data-} \& \com{Data+} \\ 
+	differential signaling: opposite voltage levels signify data \\ 
+	\com{D+} $>$ \com{D-} \leads 1 \\
+	\com{D+} $<$ \com{D-} \leads 0 \\
+
+* The data line signalling voltages are {\bf 3.6V} and 0V
+
+* Data lines are also used to detect devices: \\
+        \com{D-} pulled high = low-speed device \\ 
+        \com{D+} pulled high = full-speed or high-speed USB \\
+
+* Baud rate (low-speed) 1.50Mb/s $\pm 1.5\%$ \\
+	NRZI, bit-stuffed
+
+* Red \& Black: 5V power supply and ground ($V_{BUS}$)
+
+* (@\_@) Consider labelled photo here?
+
+Power
+=====
+
+Design Issue
+------
+
+* $V_{BUS}$ is a 5V power supply,\\ but we need to transmit using 3.6V signals
+
+* Devices \emph{can} be self-powered: Run it on a 3.6V battery.  Done. 
+
+* I like bus-powered devices \\ \leads we'll have to work around the two voltages
+
+* Two methods:\\  step the voltage down to 3.6V first \\ limit output signal voltage to 3.6V
+
+
+USB Protocol Layers
+===================
+
+Host-Controlled Bus
+-------------------
+
+* Host assigns device address (0-127) to new devices \\ 
+	then asks for configuration data, etc.
+
+* All transactions are initiated by the host: \\ 
+	your device must wait to be asked \\ 
+	"you will speak only when spoken to"
+
+* $IN$ and $OUT$ are defined from the perspective of the host: \\ 
+  data going $IN$ is leaving your microcontroller
+
+
+
+USB Protocol Layers
+===================
+
+Data Flow Modes
+---------------
+
+* Control Transfers: configuration by host \\
+	$IN$/$OUT$ through Endpoint 0 \\
+	also for custom control protocols (!)
+
+* Interrupt Transfers: small scheduled transfers \\
+	Host periodically polls for data, \\ 
+	device should have it ready when asked \\ 
+	Intended for small/medium amounts of data (Mouse)
+
+* Bulk Transfers: large scheduled transfers \\
+        Just like Interrupt, but with lower priority \\ 
+	Meant for moving large amounts of data (Flash drive)
+
+* Isochronus Transfers: guaranteed bandwidth \\
+	but no error-checking \\
+	Meant for large amounts of non-critical data (Audio data)
+
+
+
+Intro to V-USB
+++++++++++++++
+
+
+
+Getting Started / Getting Oriented
+========================
+
+* Download the zip file or clone the repo \com{https://github.com/obdev/v-usb.git}
+
+* The subdirectory \com{usbdrv} contains files to link into your code:
+	\com{usbdrv/usbdrv.o, usbdrv/usbdrvasm.o}
+
+* \com{usbdrv/usbdrv.h} describes the API \\ (you should read this to see all the possibilities)
+
+* Copy the file \com{usbconfig-prototype.h} to your code directory and edit it
+  to fit your particular configuration
+
+* The \com{examples/} directory is full of goodies.  \\ 
+	My scrollwheel builds off of \com{hid-mouse} \\
+	The weather gadget builds off of \com{custom-class} 
+
+Circuit Concerns 
+==============
+
+* See example circuits that come with V-USB
+
+Power
+------------
+
+* We have 5V $V_{BUS}$ but need to signal at 3.6V
+
+* One way: Convert 5V \leads 3.6V locally, run the chip at lower voltage
+
+* The other way: Run the AVR at 5V, limit outbound voltages to 3.6V
+
+Circuit Concerns 
+==============
+
+Timing
+------
+
+* We also need to send data at (to 1\% ish precision) 1.50Mb/s 
+
+* One way: Use an external crystal for the AVR's CPU clock \\
+	12 MHz, 12.8 MHz, 15 MHz, 16 MHz, 16.5 MHz 18 MHz and 20 MHz
+
+* The other way: Calibrate the AVR's internal clock to the USB clock \\
+	Especially cool option with AVR ATTiny chips \\
+	(Adafruit Trinket, Digispark, VUSBTiny programmer)
+
+
+
+Project 1: Scrollwheel: An HID Demo
++++++++++++++++++++++++++++++++++++
+
+HID!
+====
+
+Welcome to Infinity
+-----------------
+
+* The variety of Human Interface Devices is mindblowing
+
+* Don't believe me? 100 pages of "HID Usage Tables"
+
+* "Usage" is USB for what the thing does
+
+* Usages are stardard
+
+Usage Pages
+-----------
+
+* So many usages, that they're grouped in pages 
+
+* Generic Desktop Controls, Simulation Controls, VR Controls
+ \\
+ Medical Equipment, Telephony, Camera
+
+HID!
+====
+
+Usages
+------
+
+* Mouse, Joystick, Keyboard, Gamepad
+
+* Tank, Submarine, Spaceship, Magic Carpet Simulation \\
+  (Turret Position, Wing Flaps, Chaff Release, Dive Break)
+  
+* Head Tracker, Body Suit (points and positions for all joints)
+
+* Golf Club (Sand Wedge, Stick Face Angle, Follow Through)
+
+* Media controls, application launchers, 3D digitizers
+
+
+Report Descriptors
+==================
+
+Overview
+---------
+
+* Look up your device in the HID Usage Table, \\
+  and read through the right usage page
+
+* If your device has multiple usages, you can group them logically into 
+  \emph{Collections}: \\ 
+  a Graphic EQ is a collection of sliders \\ 
+  our Mouse is a collection of X, Y, buttons, and scrollwheel
+
+* You can collect things together by "Application", \\ "Logical" layout, or
+ "Physical" proximity
+
+* Define your data structures: \\
+     Buttons are binary bits (on/off), \\ 
+	Axes need a full byte (or more!) each \\ 
+	Scrollwheel is probably a signed integer 
+
+Report Descriptors
+==================
+
+... or Cheat
+------------
+
+* Find a device that's like yours and rip off it's descriptor
+
+* Modify slightly to match your situation, and you're done
+
+* Making a mouse?  You're not the first.  Do an Internet search.
+
+* Using V-USB?  Tons of documented projects out there.  
+
+
+Report Descriptors
+==================
+
+Resources
+---------
+
+* USB.org's HID Page: \com{http://www.usb.org/developers/hidpage/ } \\ 
+	Download and read the "HID Usage Tables" \\ 
+	Especially see the examples in the Appendix \\
+	
+* USB.org's HID Report Tool: \\ 
+  \com{http://www.usb.org/developers/hidpage\#HID Descriptor Tool }
+
+* Good overview tutorial: \\ 
+  \com{http://eleccelerator.com/ \\ tutorial-about-usb-hid-report-descriptors/ }
+
+
+USB Voodoo
+==========
+
+Debugging, etc (Linux specific?)
+--------------------------------
+
+* \com{lsusb}: lists all attached USB devices \\
+	mostly useful to get VID:PID pair
+
+* \com{usbhid-dump} dumps HID descriptors or full data streams (!) \\ 
+	\com{sudo usbhid-dump -m 046d:c049 -e stream} \\ watches my mouse \\
+
+* \com{hidrd-convert} converts a binary HID descriptor to text \\ 
+	result as code, spec, or XML
+
+* Combine:\\  
+ \textcolor{cyan}{\tt sudo usbhid-dump -m 046d:c049 | tail -n +8  \\ 
+ | xxd -r -p | hidrd-convert -o code }
+
+
+
+Structure of Code
+=================
+
+Example Report Descriptor
+==========================
+
+Changes to \com{usbconfig.h}
+============================
+
+
+
+
+
+Project 2: Weather Thing: Custom USB Data
++++++++++++++++++++++++++++++++++++++++++
+
+
+
+Making a Custom Device
+======================
+
+Advantages
+----------
+
+* Don't have to write a HID Report Descriptor
+
+* Can do non-standard things: \\ 
+	Control servomotors, for instance
+
+Disadvantages
+----------
+
+* Requires writing host-side code
+
+* Have to define and handle the commands yourself
+
+* Not as fast: (8-10 bytes per transaction) 
+
+* Requires a bit of know-how: Control Transfers
+
+
+
+Control Transfers
+==================
+
+What you need to know
+----------------------
+
+* Bi-directional, but remember host-driven
+
+* 2-3 Packets: Setup, (optional) Data, Acknowledgement \\
+  V-USB handles the ACK
+
+* 
+
+
+Setup Packet
+=============
+
+The heart and soul of Control Transfers
+---------------------------------------
+
+* 8 Bytes
+
+* \com{bmRequestType}: \\ 
+	Includes transfer direction (IN/OUT), \\
+	Control Type (Standard, Class, Vendor-specific) \\ 
+	Recipient (Device, Interface, Endpoint, Other)
+
+* \com{bRequest}: The request command itself -- one byte
+
+* \com{wValue} and \com{wIndex}: Two words (each 2 bytes) of request options 
+
+* \com{wLength}: Length of the optional data stage (in bytes)
+
+
+
+
+
+
+
+
+Resources
+=========
+
+* V-USB website and Wiki \com{ http://www.obdev.at/products/vusb/index.html}
+
+* My AVR Site: \com{www.littlehacks.org} 
+
+* Hackaday, Make Blog, Sparkfun, LadyAda for inspiration
+
+* "USB Made Simple" \com{http://www.usbmadesimple.co.uk/index.html}
+
+* "USB in a Nutshell" \com{http://www.beyondlogic.org/usbnutshell/usb1.shtml} 
+
+
+
+Questions
+==========
+
+
+Oh yeah, I wrote a book
+=======================
+
+%! images/cover_800.png
+
+
