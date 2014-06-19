@@ -15,4 +15,4 @@ for i in range(10):
             bRequest      = CMD_SET_SERVO, 
             wValue        = 0
             )
-    time.sleep(0.5)
+    time.sleep(0.2)
