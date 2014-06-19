@@ -343,7 +343,7 @@ Report Descriptors
 
 * Using V-USB?  Tons of documented projects out there.  
 
-
+* I'm ripping my descriptor off the V-USB example mouse, \\ which is in turn copied from Logitech
 
 Code or Go Home
 ===============
@@ -361,13 +361,34 @@ Let's get started
 * Need to generate HID mouse reports so that they're ready when host asks: our main routine \com{scrollWheel.c}
 
 
-
-
-Example Report Descriptor
+Report Descriptor (Part I)
 ==========================
+
+:: \inputminted[fontsize=\tiny]{c}{project_scrollwheel/descriptor_a.h}
+
+Report Descriptor (Part II)
+==========================
+
+:: \inputminted[fontsize=\scriptsize]{c}{project_scrollwheel/descriptor_b.h}
+
 
 Changes to \com{usbconfig.h}
 ============================
+
+:: \inputminted[fontsize=\scriptsize]{c}{project_scrollwheel/usbconfig_diff.h}
+
+Finally, The Code
+=================
+
+:: \inputminted[fontsize=\tiny]{c}{project_scrollwheel/scrollWheel.c}
+
+
+The Include File
+=================
+
+:: \inputminted[fontsize=\scriptsize]{c}{project_scrollwheel/scrollWheel.h}
+
+
 
 
 Circuit Concerns 
@@ -664,6 +685,17 @@ Custom commands are easy
 * The cost is that you have to write host code, \\ 
   but that's not that bad either?
 
+Summary
+=======
+
+What have we learned?
+----------------------
+
+* How to make HID and Custom USB devices, \\ and write host-side code when necessary (whew!)
+
+* How to hook up a regular AVR chip as a simple USB device
+
+* Far too much detail about USB -- I hope it serves you well 
 
 
 Resources

@@ -1,6 +1,4 @@
-/*  scrollWheel   */
 #include "scrollWheel.h"
-
 /* This function used to respond to Vendor-Specific Control commands 
    We're not using any, so just returning 0. */ 
 usbMsgLen_t usbFunctionSetup(uchar data[8]){
@@ -8,7 +6,6 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]){
 }
 
 int main(void){
-
 	/* Reconnect and re-enumerate */
 	usbInit();
 	usbDeviceDisconnect();  
