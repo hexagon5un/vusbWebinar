@@ -36,18 +36,20 @@ requestType = usb.util.build_request_type(
         )
 
 dev = usb.core.find(idVendor=0x6666, idProduct=0xbeef)
-
-dev.ctrl_transfer(  ## Turn servo on, set position
-        bmRequestType = requestType, 
-        bRequest      = commandDict['setServo'], 
-        wValue        = servoPulseLength
-        )
-
+dev.ctrl_transfer(bmRequestType = requestType, bRequest = commandDict['setServo'],
+        wValue = pointerDict['Clear']) 
+time.sleep(1)
+dev.ctrl_transfer(bmRequestType = requestType, bRequest = commandDict['setServo'],
+        wValue = pointerDict['Rain'])
+time.sleep(1)
+dev.ctrl_transfer(bmRequestType = requestType, bRequest = commandDict['setServo'],
+        wValue = pointerDict['Clouds']) 
 time.sleep(1)
 
-dev.ctrl_transfer(  ## Turn servo off, save power
-        bmRequestType = requestType, 
-        bRequest      = commandDict['relax'] 
-        )
+dev.ctrl_transfer(bmRequestType = requestType, 
+        bRequest = commandDict['setServo'], wValue = servoPulseLength) 
+time.sleep(1)
+
+dev.ctrl_transfer( bmRequestType = requestType, bRequest = commandDict['relax'] )
 
 

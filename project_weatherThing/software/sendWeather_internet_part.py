@@ -19,5 +19,5 @@ tomorrowsWeather = weather['list'][1]['weather'][0]['main']
 print tomorrowsWeather
 
 ## Convert weather string to servo pulse length
-pointerDict = {'Clear':1400, 'Clouds':1800, 'Rain':2300}
+pointerDict = {'Clear':2500, 'Clouds':1700, 'Rain':1000}
 servoPulseLength = pointerDict[tomorrowsWeather]

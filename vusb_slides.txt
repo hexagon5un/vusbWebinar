@@ -560,14 +560,14 @@ Control Transfer:
 * No data.  Done.
 
 
-Host-Side: Python
+Host-Side: Internet Part
 =================
 
 :: \inputminted[fontsize=\scriptsize]{python}{project_weatherThing/software/sendWeather_internet_part.py}
 
 
 
-Host-Side: Python
+Host-Side: USB Part
 =================
 
 :: \inputminted[fontsize=\scriptsize]{python}{project_weatherThing/software/sendWeather_USB_part.py}

@@ -15,3 +15,7 @@ void initServo(void);
 
 void setServo(uint16_t pulse);
 /* Sets the servo to the specified position */ 
+
+
+void servoOff(void);
+

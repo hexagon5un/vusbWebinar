@@ -1,10 +1,10 @@
-## Stripped-down Example of Computer-VUSB Device Communication
 
 import usb.core 
 import usb.util
+import time
 
 ## Now the USB side
-commandDict = {'setServo':0x42}
+commandDict = {'setServo':0x42, 'relax':0x01}
 
 requestType = usb.util.build_request_type(
         usb.util.CTRL_OUT, 
@@ -12,10 +12,19 @@ requestType = usb.util.build_request_type(
         usb.util.CTRL_RECIPIENT_DEVICE
         )
 
-dev = usb.core.find(idVendor=0x16c0, idProduct=0x05dc)
+dev = usb.core.find(idVendor=0x6666, idProduct=0xbeef)
 
-dev.ctrl_transfer(
+dev.ctrl_transfer(  ## Turn servo on, set position
         bmRequestType = requestType, 
         bRequest      = commandDict['setServo'], 
         wValue        = servoPulseLength
         )
+
+time.sleep(1)
+
+dev.ctrl_transfer(  ## Turn servo off, save power
+        bmRequestType = requestType, 
+        bRequest      = commandDict['relax'] 
+        )
+
+

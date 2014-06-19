@@ -9,6 +9,7 @@
 #include "servo.h"
 
 #define CMD_SET_SERVO       0x42
+#define CMD_RELAX           0x01
 
 /* ------------------------------------------------------------------------- */
 /* ----------------------------- USB interface ----------------------------- */
@@ -20,6 +21,9 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 	if(rq->bRequest == CMD_SET_SERVO){
 		setServo((rq->wValue).word);
 		return 0;                       /* tell the driver no data stage */
+	} else if (rq->bRequest == CMD_RELAX){
+		servoOff();
+		return 0;
 	}
 	return 0;   /* default for not implemented requests: no data stage   */
 }
