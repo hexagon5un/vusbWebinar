@@ -9,7 +9,13 @@
 /* 12 MHz crystal with 2x 22pF caps to ground */
 // avrdude -c usbtiny -p m88 -v -F -U lfuse:w:0xf7:m
 #include <util/delay.h>
-#include "usbSupport.h"		/* includes bunch of crap from USB mouse demo */
+#include <avr/io.h>
+#include <avr/wdt.h>
+#include <avr/interrupt.h>  /* for sei() */
+#include <util/delay.h>     /* for _delay_ms() */
+#include <avr/pgmspace.h>   /* required by usbdrv.h */
+#include "usbdrv.h"
+#include "descriptor.h"		/* HID descriptor */
 
 #define LEDTIME       1 	/* ms */
 #define SCROLLFACTOR  1
@@ -25,6 +31,43 @@
 #define INPIN          PIND
 #define IN1            PD6
 #define IN2            PD5
+
+typedef struct{
+    uchar   buttonMask;
+    char    dx;
+    char    dy;
+    char    dWheel;
+}report_t;
+
+static report_t reportBuffer;
+static uchar    idleRate;   /* repeat rate for keyboards, never used for mice */
+
+usbMsgLen_t usbFunctionSetup(uchar data[8]){
+  usbRequest_t    *rq = (void *)data;
+  
+  /* The following requests are never used. But since they are required by
+   * the specification, we implement them in this example.
+   */
+  if((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS){    /* class request type */
+    //    DBG1(0x50, &rq->bRequest, 1);   /* debug output: print our request */
+    if(rq->bRequest == USBRQ_HID_GET_REPORT){  /* wValue: ReportType (highbyte), ReportID (lowbyte) */
+      /* we only have one report type, so don't look at wValue */
+      usbMsgPtr = (void *)&reportBuffer;
+      return sizeof(reportBuffer);
+    }
+    else if(rq->bRequest == USBRQ_HID_GET_IDLE){
+      usbMsgPtr = &idleRate;
+      return 1;
+    }
+    else if(rq->bRequest == USBRQ_HID_SET_IDLE){
+      idleRate = rq->wValue.bytes[1];
+    }
+  }
+  else{
+    /* no vendor specific requests implemented */
+  }
+  return 0;   /* default for not implemented requests: return no data back to host */
+}
 
 
 // Globals

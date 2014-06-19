@@ -1,14 +1,3 @@
-#include <avr/io.h>
-#include <avr/wdt.h>
-#include <avr/interrupt.h>  /* for sei() */
-#include <util/delay.h>     /* for _delay_ms() */
-#include <avr/pgmspace.h>   /* required by usbdrv.h */
-#include "usbdrv.h"
-
-/* ------------------------------------------------------------------------- */
-/* ----------------------------- USB interface ----------------------------- */
-/* ------------------------------------------------------------------------- */
-
 const PROGMEM char usbHidReportDescriptor[52] = { /* USB report descriptor, size must match usbconfig.h */
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x09, 0x02,                    // USAGE (Mouse)
@@ -45,40 +34,3 @@ const PROGMEM char usbHidReportDescriptor[52] = { /* USB report descriptor, size
  *     Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0 .... 8 bit signed relative coordinate y
  *     W7 W6 W5 W4 W3 W2 W1 W0 .... 8 bit signed relative coordinate wheel
  */
-typedef struct{
-    uchar   buttonMask;
-    char    dx;
-    char    dy;
-    char    dWheel;
-}report_t;
-
-static report_t reportBuffer;
-static uchar    idleRate;   /* repeat rate for keyboards, never used for mice */
-
-usbMsgLen_t usbFunctionSetup(uchar data[8]){
-  usbRequest_t    *rq = (void *)data;
-  
-  /* The following requests are never used. But since they are required by
-   * the specification, we implement them in this example.
-   */
-  if((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS){    /* class request type */
-    //    DBG1(0x50, &rq->bRequest, 1);   /* debug output: print our request */
-    if(rq->bRequest == USBRQ_HID_GET_REPORT){  /* wValue: ReportType (highbyte), ReportID (lowbyte) */
-      /* we only have one report type, so don't look at wValue */
-      usbMsgPtr = (void *)&reportBuffer;
-      return sizeof(reportBuffer);
-    }
-    else if(rq->bRequest == USBRQ_HID_GET_IDLE){
-      usbMsgPtr = &idleRate;
-      return 1;
-    }
-    else if(rq->bRequest == USBRQ_HID_SET_IDLE){
-      idleRate = rq->wValue.bytes[1];
-    }
-  }
-  else{
-    /* no vendor specific requests implemented */
-  }
-  return 0;   /* default for not implemented requests: return no data back to host */
-}
-
