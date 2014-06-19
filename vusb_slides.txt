@@ -563,11 +563,14 @@ Control Transfer:
 Host-Side: Python
 =================
 
-:: \inputminted[fontsize=\scriptsize]{python}{}
+:: \inputminted[fontsize=\scriptsize]{python}{project_weatherThing/software/sendWeather_internet_part.py}
 
 
 
+Host-Side: Python
+=================
 
+:: \inputminted[fontsize=\scriptsize]{python}{project_weatherThing/software/sendWeather_USB_part.py}
 
 
 

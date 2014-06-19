@@ -2,19 +2,29 @@
 
 import urllib2
 import json
-import usb.core 
-import usb.util
 
 ## First the Internet side
-forecastURL = 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Munich,DE&cnt=7&mode=json&units=metric'
+forecastURL =  'http://api.openweathermap.org/data/2.5/forecast/daily'
+forecastURL += '?q=Munich,DE&cnt=2&mode=json&units=metric'
+
 webpage = urllib2.urlopen(forecastURL).read()
 j = json.JSONDecoder()
 weather = j.decode(webpage)
 
-today = weather['list'][0]['weather'][0]['main']
-tomorrow = weather['list'][1]['weather'][0]['main']
+## The following navigates through the nested list/dict
+##  structure that's returned
+tomorrowsWeather = weather['list'][1]['weather'][0]['main']
 
+## Result is a string: ('Clear', 'Clouds', or 'Rain')
+print tomorrowsWeather
+
+## Convert weather string to servo pulse length
 pointerDict = {'Clear':1400, 'Clouds':1800, 'Rain':2300}
+servoPulseLength = pointerDict[tomorrowsWeather]
+## Stripped-down Example of Computer-VUSB Device Communication
+
+import usb.core 
+import usb.util
 
 ## Now the USB side
 commandDict = {'setServo':0x42}
@@ -30,5 +40,5 @@ dev = usb.core.find(idVendor=0x16c0, idProduct=0x05dc)
 dev.ctrl_transfer(
         bmRequestType = requestType, 
         bRequest      = commandDict['setServo'], 
-        wValue        = pointerDict[today]
+        wValue        = servoPulseLength
         )
