@@ -3,7 +3,6 @@ import usb.core
 import usb.util
 import time
 
-## Now the USB side
 commandDict = {'setServo':0x42, 'relax':0x01}
 
 requestType = usb.util.build_request_type(
@@ -23,8 +22,6 @@ dev.ctrl_transfer(  ## Turn servo on, set position
 time.sleep(1)
 
 dev.ctrl_transfer(  ## Turn servo off, save power
-        bmRequestType = requestType, 
-        bRequest      = commandDict['relax'] 
-        )
+        bmRequestType = requestType, bRequest = commandDict['relax'] )
 
 
