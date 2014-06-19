@@ -13,6 +13,6 @@ for i in range(10):
     dev.ctrl_transfer(
             bmRequestType = OUT_TYPE, 
             bRequest      = CMD_SET_SERVO, 
-            wValue        = 0
+            wValue        = i  
             )
     time.sleep(0.2)
