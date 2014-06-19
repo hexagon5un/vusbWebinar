@@ -17,7 +17,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8])
 {
 	usbRequest_t    *rq = (void *)data;
 	if(rq->bRequest == CMD_SET_SERVO){
-		LED_PORT_OUTPUT ^= _BV(LED_BIT);
+		setServo(123);
 		return 0;                       /* tell the driver to send 1 byte */
 	}
 	return 0;   /* default for not implemented requests: return no data back to host */
