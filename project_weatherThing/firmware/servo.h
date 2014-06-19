@@ -4,7 +4,6 @@
 /* ------------------------------------------------------------------------- */
 
 #include <avr/io.h>
-#include <avr/interrupt.h>  /* for sei() */
 
 // For great blinkage
 #define LED_PORT_DDR        DDRB

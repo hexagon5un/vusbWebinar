@@ -9,6 +9,7 @@
 #include "servo.h"
 
 #define CMD_SET_SERVO       0x42
+
 /* ------------------------------------------------------------------------- */
 /* ----------------------------- USB interface ----------------------------- */
 /* ------------------------------------------------------------------------- */
@@ -33,7 +34,7 @@ int main(void)
 	usbDeviceConnect();
 	sei();
 
-	
+	initServo();		
 	LED_PORT_DDR |= _BV(LED_BIT);   /* make the LED bit an output */
 	for(;;){                /* main event loop */
 		usbPoll();
