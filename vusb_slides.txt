@@ -353,16 +353,15 @@ Let's get started
 
 * Making an Interrupt-mode device -- a mouse
 
-* Need to set up an Interrupt-OUT endpoint to talk to host
+* Need to define the HID Report Descriptor: \com{descriptor.h} \\ 
+  also create variable to store the report data
 
-* Need to generate HID mouse reports so that they're ready when host asks
+* Need to set up an Interrupt-OUT endpoint to talk to host: \com{usbconfig.h}
 
-* All the while, need to watch our buttons, see if user is scrolling
+* Need to generate HID mouse reports so that they're ready when host asks: our main routine \com{scrollWheel.c}
 
 
 
-Structure of Code
-=================
 
 Example Report Descriptor
 ==========================
