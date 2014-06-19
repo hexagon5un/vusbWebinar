@@ -40,13 +40,21 @@ USB Background
 ++++++++++++++
 
 
-
-
-USB: Universal Serial Bus
+USB is {\bf very} complicated.
 =========================
 
-USB (A Bunch of New Words)
+Don't Panic!
+------------
+
+* Spec is 600+ pages long -- not including HID usage tables
+
+* Hacker Approach: Just learn what we need to get job done.
+
+
+Jargon
 -----------------
+
+* \emph{Human Interface Device} (HID): \\ Standard USB device classes that people interact with 
 
 * \emph{Host}: Your computer
 
@@ -57,7 +65,6 @@ USB (A Bunch of New Words)
 * \emph{Control Endpoint}: Endpoint 0.  \\
   Must be present, two-way, used to control the device.
 
-* Human Interface Device (HID) 
 
 
 Wiring: The Physical Layer
@@ -79,7 +86,7 @@ Wiring: The Physical Layer
         \com{D+} pulled high = full-speed or high-speed USB \\
 
 * Baud rate (low-speed) 1.50Mb/s $\pm 1.5\%$ \\
-	NRZI, bit-stuffed
+	NRZI, bit-stuffed (handled by V-USB library)
 
 * Red \& Black: 5V power supply and ground ($V_{BUS}$)
 
@@ -95,56 +102,126 @@ Design Issue
 
 * Devices \emph{can} be self-powered: Run it on a 3.6V battery.  Done. 
 
-* I like bus-powered devices \\ \leads we'll have to work around the two voltages
+* We all like bus-powered devices \\ \leads we'll have to work around the two voltages
 
-* Two methods:\\  step the voltage down to 3.6V first \\ limit output signal voltage to 3.6V
+* Two methods:\\  convert 5V down to 3.6V first, run AVR at 3.6V \\ run AVR at 5V but limit output signal voltage to 3.6V
 
+* Good discussion of pros/cons at \com{http://vusb.wikidot.com/hardware}
 
-USB Protocol Layers
-===================
+USB is a Host-Controlled Bus
+=================== 
 
-Host-Controlled Bus
+What does this mean?
 -------------------
 
-* Host assigns device address (0-127) to new devices \\ 
-	then asks for configuration data, etc.
-
 * All transactions are initiated by the host: \\ 
-	your device must wait to be asked \\ 
-	"you will speak only when spoken to"
+	your device must wait to be asked  
+	
+* "You will speak only when spoken to"
 
 * $IN$ and $OUT$ are defined from the perspective of the host: \\ 
   data going $IN$ is leaving your microcontroller
 
+Enumeration: What happens when I plug my device in?
+------------
+
+* Host resets device then asks for device descriptor \\
+  assigns the device an address \\ 
+  then resets again and asks for a whole bunch of descriptors
+
+* (Almost) All of this is handled by V-USB library
 
 
-USB Protocol Layers
+
+
+USB Data Flow Modes: The Ones We Will Use
 ===================
 
-Data Flow Modes
----------------
+Four modes
+------------
 
-* Control Transfers: configuration by host \\
-	$IN$/$OUT$ through Endpoint 0 \\
-	also for custom control protocols (!)
+* One mode per endpoint: what does the device need? 
 
-* Interrupt Transfers: small scheduled transfers \\
-	Host periodically polls for data, \\ 
-	device should have it ready when asked \\ 
-	Intended for small/medium amounts of data (Mouse)
+Control Transfers: configuration by host  
+------------
+*	$IN$/$OUT$ through Endpoint 0: mandatory
+*	Also for custom control protocols (Weather Thing)
 
-* Bulk Transfers: large scheduled transfers \\
-        Just like Interrupt, but with lower priority \\ 
-	Meant for moving large amounts of data (Flash drive)
+Interrupt Transfers: high-priority, scheduled transfers 
+------------
+*	Host periodically polls for data 
+*	Device should have data ready when asked  
+*	Intended for small/medium amounts of data (Mouse)
 
-* Isochronus Transfers: guaranteed bandwidth \\
-	but no error-checking \\
-	Meant for large amounts of non-critical data (Audio data)
+USB Data Flow Modes: The Ones We Won't Use
+===================
 
+Bulk Transfers: large scheduled transfers 
+------------
+*       Just like Interrupt, but with lower priority  
+*	Meant for moving large amounts of data (Flash drive)
+
+Isochronus Transfers: guaranteed bandwidth 
+------------
+*	But no error-checking 
+* Meant for large amounts of non-critical data (Sound card)
+
+USB Data Flow Modes: Summary
+===================
+
+Control Endpoint / Transfer Mode:  
+----------------
+  Use for device enumeration \\
+  Use for custom control data
+
+Interrupt IN Endpoint / Transfer Mode: 
+----------------
+  Use for keyboard/mouse/gamepad data
 
 
 Intro to V-USB
 ++++++++++++++
+
+
+How Does V-USB Help?
+==================
+
+What needed doing?
+------------
+
+* Read incoming serial data, NRZI unpack
+
+* Parse it, respond to our device address
+
+* NRZI pack, send out serial data when able
+
+* All this with tight timing
+
+* Bookkeeping: Respond to host's requests for descriptors
+
+What Do We Need To Do?
+=====================
+
+Configure
+---------
+
+* Configure descriptors, endpoints, AVR pinouts, CPU speed \\
+  \com{usbconfig.h}
+
+Write Code
+----------------
+
+* Attach/reattach to fake the device resets
+
+* Write functions to handle control data \\ 
+  \com{usbFunctionSetup()}
+ 
+* Get our interrupt data ready if we use it \\ 
+  \com {usbInterruptIsReady()} and \com{usbSetInterrupt()}
+
+* Update the V-USB system at least every 50 ms \\ \com{usbPoll()}
+
+
 
 
 
@@ -168,32 +245,32 @@ Getting Started / Getting Oriented
 Circuit Concerns 
 ==============
 
-* See example circuits that come with V-USB
-
 Power
 ------------
 
-* We have 5V $V_{BUS}$ but need to signal at 3.6V
+* Choose to run AVR at 5V:  \\ 
+   use zener diodes to limit output voltage
 
-* One way: Convert 5V \leads 3.6V locally, run the chip at lower voltage
-
-* The other way: Run the AVR at 5V, limit outbound voltages to 3.6V
-
-Circuit Concerns 
-==============
 
 Timing
 ------
 
-* We also need to send data at (to 1\% ish precision) 1.50Mb/s 
+* Baud rate with 1\%ish precision: 1.50Mb/s 
 
-* One way: Use an external crystal for the AVR's CPU clock \\
-	12 MHz, 12.8 MHz, 15 MHz, 16 MHz, 16.5 MHz 18 MHz and 20 MHz
+* Easy way: Use an external crystal for the AVR's CPU clock \\
+	12, 12.8, 15, 16, 16.5, 18 or 20 MHz
 
-* The other way: Calibrate the AVR's internal clock to the USB clock \\
-	Especially cool option with AVR ATTiny chips \\
-	(Adafruit Trinket, Digispark, VUSBTiny programmer)
+* Cheap, kludgy way: run CPU clock out of spec \\
+       Calibrate the AVR's 8 MHz internal clock using USB \\
 
+* Viable option with ATTiny 45, 85, 261 chips  \\
+	have a high-speed (64MHz) internal oscillator \\
+	(Adafruit Trinket, Sparkfun AVR Stick, Digispark)
+
+Circuit Diagram
+===============
+
+* Image here
 
 
 Project 1: Scrollwheel: An HID Demo
@@ -351,9 +428,7 @@ Disadvantages
 
 * Have to define and handle the commands yourself
 
-* Not as fast: (8-10 bytes per transaction) 
-
-* Requires a bit of know-how: Control Transfers
+* Requires a bit of detailed know-how: Control Transfers
 
 
 
@@ -363,12 +438,15 @@ Control Transfers
 What you need to know
 ----------------------
 
-* Bi-directional, but remember host-driven
+* Three Packet Types: Setup, Data, Acknowledgement  
 
-* 2-3 Packets: Setup, (optional) Data, Acknowledgement \\
-  V-USB handles the ACK
+* Starts with Host sending a Setup packet: \\ 
+  specifies type, direction, and amount of data that follows
 
-* 
+* Optional Data packet(s) can go either way (IN or OUT): \\  
+  Device or Host can send the data packets
+
+* If Host sent data, V-USB handles the ACK automagically
 
 
 Setup Packet
@@ -386,15 +464,132 @@ The heart and soul of Control Transfers
 
 * \com{bRequest}: The request command itself -- one byte
 
-* \com{wValue} and \com{wIndex}: Two words (each 2 bytes) of request options 
+* \com{wValue} and \com{wIndex}:\\ Two words (each 2 bytes) of request options 
 
 * \com{wLength}: Length of the optional data stage (in bytes)
 
 
+Setup In Detail
+===============
+
+\com{bmRequestType}
+------------------------
+
+* IN/OUT matters.  Remember relative to host. 
+
+* For custom commands, select "Vendor-specific"
+
+* When V-USB gets a custom Setup packet, it calls the function \com{usbFunctionSetup}.  
+
+
+\com{bRequest}
+--------------
+
+* Can specify 256 commands for the Device
+
+* Host and Device agree on what the commands are / do
+
+* For OUT data, you can send four bytes of arguments \\ 
+  without even using the data stage 
+  (\com{wValue} and \com{wIndex}) 
+
+
+Control Transfers
+=================
+
+Using the Data Stage
+--------------------
+
+* To get data from the AVR to the host (IN) \\ 
+  you need to specify \com{wLength}
+
+* If you need to send more than 4 bytes OUT, \\
+  you need to specify \com{wLength}
+
+* V-USB calls the functions 
+  \com{usbFunctionRead()} and \com{usbFunctionWrite()} to handle these data
+  transactions \\ 
+  ("read" reads data into the host)
+
+* Gotcha: need to enable read/write functions in the config
+
+* See the example \com{hid-data} and \com{usbdrv.usbdrv.h} for details
+   
+Enough Talk, Let's Code
+=======================
+
+Host-Side: Python
+=================
+
+Setup
+------
+
+* Install Python and the \com{pyusb} library 
+
+* Win/Mac will also need \com{libusb}
+
+* See \com{https://github.com/walac/pyusb} for install help  
+%  and \com{https://github.com/walac/pyusb/blob/master/docs/tutorial.rst} for an intro 
+
+* Quick test: \\ 
+:: \inputminted[fontsize=\scriptsize]{python}{pyusb_test.py}
+
+ Prints out VID:PID of all devices attached (in hexadecimal)
+
+
+Host-Side: Python
+=================
+
+Code Outline:
+-------------
+
+* Fetch weather forecast data over Internet
+
+* Convert to pulse length for servomotor
+
+* Push pulse length over USB to AVR using Control Transfer
+
+Control Transfer:
+-----------------
+
+* Need to build \com{bmRequestType}: \\ 
+  OUT transfer, Vendor-specific
+
+* Set \com{wValue} to the desired pulse length
+
+* No data.  Done.
+
+
+Host-Side: Python
+=================
+
+:: \inputminted[fontsize=\scriptsize]{python}{}
 
 
 
 
+
+
+
+
+Crazy Tricks
+============
+
+A Potpourri of Hacks:
+----------------------
+
+* Use the control messages for custom communications even though you've defined an HID device \\ 
+  lets you get around need to install drivers in Windows \\ 
+  lets you design a smart/configurable keyboard
+
+* Define your device descriptors in RAM, re-enumerate as different devices on the fly \\
+  One device?  Or muliple?
+
+* USB Jamming / Spoofing: Host-mode bus.  What happens if you disobey?
+
+* USB Sniffing: What happens if your device doesn't disregard packages meant for others?
+
+* Turn one device into another
 
 
 Resources

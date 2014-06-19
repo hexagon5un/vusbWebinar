@@ -2,12 +2,10 @@
 
 import urllib2
 import json
-import datetime
+import usb.core 
+import usb.util
 
-# weatherURL = 'http://api.openweathermap.org/data/2.5/weather?q=Munich,DE&units=metric'
-# temperature = weather['main']['temp'] 
-# temperature = float(temperature)   ## Kelvin to Celcius conversion
-
+## First the Internet side
 forecastURL = 'http://api.openweathermap.org/data/2.5/forecast/daily?q=Munich,DE&cnt=7&mode=json&units=metric'
 webpage = urllib2.urlopen(forecastURL).read()
 j = json.JSONDecoder()
@@ -18,16 +16,19 @@ tomorrow = weather['list'][1]['weather'][0]['main']
 
 pointerDict = {'Clear':1400, 'Clouds':1800, 'Rain':2300}
 
-## Press button on device, initializes web search for data, transfers it over.
-## States?
+## Now the USB side
+commandDict = {'setServo':0x42}
 
-## Software Machine:
-## Waiting: On press -> fetch
-## Fetching: on complete -> update
-## Updating: wait for complete -> wait
+requestType = usb.util.build_request_type(
+        usb.util.CTRL_OUT, 
+        usb.util.CTRL_TYPE_VENDOR, 
+        usb.util.CTRL_RECIPIENT_DEVICE
+        )
 
-## AVR Machine:
-## Waiting -> on press transmit
-## Transmitting -> wait for update
-## Update -> receive data, move motor -> waiting
+dev = usb.core.find(idVendor=0x16c0, idProduct=0x05dc)
 
+dev.ctrl_transfer(
+        bmRequestType = requestType, 
+        bRequest      = commandDict['setServo'], 
+        wValue        = pointerDict[today]
+        )
