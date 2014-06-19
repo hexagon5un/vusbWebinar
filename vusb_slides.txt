@@ -33,38 +33,35 @@ Why V-USB?
 
 * Can run on very minimal hardware 
 
+Today
+=====
 
+Projects
+---------
+
+* USB Scrollwheel 
+
+* Weather Thing
+
+Topics
+------
+
+* USB basics
+
+* V-USB particulars
+
+* Human Interface Devices 
+
+* Custom (Vendor-Specific) USB Commands
 
 
 USB Background
 ++++++++++++++
 
+This is USB
+=============
 
-USB is {\bf very} complicated.
-=========================
-
-Don't Panic!
-------------
-
-* Spec is 600+ pages long -- not including HID usage tables
-
-* Hacker Approach: Just learn what we need to get job done.
-
-
-Jargon
------------------
-
-* \emph{Human Interface Device} (HID): \\ Standard USB device classes that people interact with 
-
-* \emph{Host}: Your computer
-
-* \emph{Function}: The USB function on your device
-
-* \emph{Endpoint}: A data source or sink (on your device)
-
-* \emph{Control Endpoint}: Endpoint 0.  \\
-  Must be present, two-way, used to control the device.
-
+%! images/usb_cable.jpg
 
 
 Wiring: The Physical Layer
@@ -90,23 +87,33 @@ Wiring: The Physical Layer
 
 * Red \& Black: 5V power supply and ground ($V_{BUS}$)
 
-* (@\_@) Consider labelled photo here?
 
-Power
-=====
 
-Design Issue
-------
 
-* $V_{BUS}$ is a 5V power supply,\\ but we need to transmit using 3.6V signals
+The USB Protocol is {\bf very} complicated.
+=========================
 
-* Devices \emph{can} be self-powered: Run it on a 3.6V battery.  Done. 
+Don't Panic!
+------------
 
-* We all like bus-powered devices \\ \leads we'll have to work around the two voltages
+* Spec is 600+ pages long -- not including HID usage tables
 
-* Two methods:\\  convert 5V down to 3.6V first, run AVR at 3.6V \\ run AVR at 5V but limit output signal voltage to 3.6V
+* Hacker Approach: Just learn what we need to get job done.
 
-* Good discussion of pros/cons at \com{http://vusb.wikidot.com/hardware}
+
+Jargon
+-----------------
+
+* \emph{Human Interface Device} (HID): \\ Standard USB device classes that people interact with 
+
+* \emph{Host}: Your computer
+
+* \emph{Function}: The USB function on your device
+
+* \emph{Endpoint}: A data source or sink (on your device)
+
+* \emph{Control Endpoint}: Endpoint 0.  \\
+  Must be present, two-way, used to control the device.
 
 USB is a Host-Controlled Bus
 =================== 
@@ -171,17 +178,16 @@ USB Data Flow Modes: Summary
 
 Control Endpoint / Transfer Mode:  
 ----------------
-  Use for device enumeration \\
-  Use for custom control data
+  Use for device enumeration (handled by V-USB library) \\
+  Use for "Vendor-Specific" custom control data
 
-Interrupt IN Endpoint / Transfer Mode: 
+Interrupt Endpoint / Transfer Mode: 
 ----------------
   Use for keyboard/mouse/gamepad data
 
 
 Intro to V-USB
 ++++++++++++++
-
 
 How Does V-USB Help?
 ==================
@@ -242,37 +248,6 @@ Getting Started / Getting Oriented
 	My scrollwheel builds off of \com{hid-mouse} \\
 	The weather gadget builds off of \com{custom-class} 
 
-Circuit Concerns 
-==============
-
-Power
-------------
-
-* Choose to run AVR at 5V:  \\ 
-   use zener diodes to limit output voltage
-
-
-Timing
-------
-
-* Baud rate with 1\%ish precision: 1.50Mb/s 
-
-* Easy way: Use an external crystal for the AVR's CPU clock \\
-	12, 12.8, 15, 16, 16.5, 18 or 20 MHz
-
-* Cheap, kludgy way: run CPU clock out of spec \\
-       Calibrate the AVR's 8 MHz internal clock using USB \\
-
-* Viable option with ATTiny 45, 85, 261 chips  \\
-	have a high-speed (64MHz) internal oscillator \\
-	(Adafruit Trinket, Sparkfun AVR Stick, Digispark)
-
-Circuit Diagram
-===============
-
-* Image here
-
-
 Project 1: Scrollwheel: An HID Demo
 +++++++++++++++++++++++++++++++++++
 
@@ -323,8 +298,7 @@ Report Descriptors
 Overview
 ---------
 
-* Look up your device in the HID Usage Table, \\
-  and read through the right usage page
+* Nested structure: \\ Usage Table \leads Usage \leads Lower-level Usage
 
 * If your device has multiple usages, you can group them logically into 
   \emph{Collections}: \\ 
@@ -342,21 +316,6 @@ Overview
 Report Descriptors
 ==================
 
-... or Cheat
-------------
-
-* Find a device that's like yours and rip off it's descriptor
-
-* Modify slightly to match your situation, and you're done
-
-* Making a mouse?  You're not the first.  Do an Internet search.
-
-* Using V-USB?  Tons of documented projects out there.  
-
-
-Report Descriptors
-==================
-
 Resources
 ---------
 
@@ -370,25 +329,35 @@ Resources
 * Good overview tutorial: \\ 
   \com{http://eleccelerator.com/ \\ tutorial-about-usb-hid-report-descriptors/ }
 
+Report Descriptors
+==================
 
-USB Voodoo
-==========
+... or Cheat
+------------
 
-Debugging, etc (Linux specific?)
---------------------------------
+* Find a device that's like yours and rip off it's descriptor
 
-* \com{lsusb}: lists all attached USB devices \\
-	mostly useful to get VID:PID pair
+* Modify slightly to match your situation, and you're done
 
-* \com{usbhid-dump} dumps HID descriptors or full data streams (!) \\ 
-	\com{sudo usbhid-dump -m 046d:c049 -e stream} \\ watches my mouse \\
+* Making a mouse?  You're not the first. \\ No need to re-invent the scrollwheel! 
 
-* \com{hidrd-convert} converts a binary HID descriptor to text \\ 
-	result as code, spec, or XML
+* Using V-USB?  Tons of documented projects out there.  
 
-* Combine:\\  
- \textcolor{cyan}{\tt sudo usbhid-dump -m 046d:c049 | tail -n +8  \\ 
- | xxd -r -p | hidrd-convert -o code }
+
+
+Code or Go Home
+===============
+
+Let's get started
+-----------------
+
+* Making an Interrupt-mode device -- a mouse
+
+* Need to set up an Interrupt-OUT endpoint to talk to host
+
+* Need to generate HID mouse reports so that they're ready when host asks
+
+* All the while, need to watch our buttons, see if user is scrolling
 
 
 
@@ -402,11 +371,63 @@ Changes to \com{usbconfig.h}
 ============================
 
 
+Circuit Concerns 
+==============
+
+Power
+------------
+
+* $V_{BUS}$ is a 5V power supply,\\ but we need to transmit using 3.6V signals
+
+* Devices \emph{can} be self-powered: Run it on a 3.6V battery.  Done. 
+
+* We all like bus-powered devices \\ \leads we'll have to work around the two voltages
+
+* Two methods:\\  convert 5V down to 3.6V first, run AVR at 3.6V \\ run AVR at 5V but limit output signal voltage to 3.6V
+
+* Good discussion of pros/cons at \com{http://vusb.wikidot.com/hardware}
+
+* Choose to run AVR at 5V:  \\ 
+   use zener diodes to limit output voltage
+
+Circuit Concerns 
+==============
+
+Timing
+------
+
+* Baud rate with 1\%ish precision: 1.50Mb/s 
+
+* Easy way: Use an external crystal for the AVR's CPU clock \\
+	12, 12.8, 15, 16, 16.5, 18 or 20 MHz
+
+* Cheap, kludgy way: run CPU clock out of spec \\
+       Calibrate the AVR's 8 MHz internal clock using USB \\
+
+* Viable option with ATTiny 45, 85, 261 chips  \\
+	have a high-speed (64MHz) internal oscillator \\
+	(Adafruit Trinket, Sparkfun AVR Stick, Digispark)
+
+Circuit Diagram
+===============
+
+%% images/with-zener.png
+
+Ghetto USB Hookup
+=================
+
+%! images/ghetto_usb_hookup.jpg
+
 
 
 
 Project 2: Weather Thing: Custom USB Data
 +++++++++++++++++++++++++++++++++++++++++
+
+The Weather Thing
+=================
+
+%! images/weather_thing.png
 
 
 
@@ -573,32 +594,85 @@ Host-Side: USB Part
 :: \inputminted[fontsize=\scriptsize]{python}{project_weatherThing/software/sendWeather_USB_part.py}
 
 
+AVR Side Code
+==============
+
+Writing Custom Commands
+-----------------------
 
 
-Crazy Tricks
-============
+* All the action here is in the Control transfer handling
 
-A Potpourri of Hacks:
-----------------------
+* When the AVR receives a Control transfer, the standard responses are handled by the V-USB library
 
-* Use the control messages for custom communications even though you've defined an HID device \\ 
-  lets you get around need to install drivers in Windows \\ 
-  lets you design a smart/configurable keyboard
+* When the AVR receives a Control transfer in Vendor-specific mode, it passes the setup packet along
+  to the user-implemented function \com{usbFunctionSetup}.
 
-* Define your device descriptors in RAM, re-enumerate as different devices on the fly \\
-  One device?  Or muliple?
+* Note that we first cast the data as a \com{usbRequest\_t} type, which lets us read in the individual
+bytes by name, and handle the two-byte \com{wValue} field as a 16-bit number
 
-* USB Jamming / Spoofing: Host-mode bus.  What happens if you disobey?
 
-* USB Sniffing: What happens if your device doesn't disregard packages meant for others?
 
-* Turn one device into another
+AVR Code Control Setup 
+================
+
+:: \inputminted[fontsize=\scriptsize]{c}{project_weatherThing/firmware/setupHandler.c}
+
+AVR Code Main Loop 
+================
+
+:: \inputminted[fontsize=\scriptsize]{c}{project_weatherThing/firmware/mainloop.c}
+
+
+
+The Build 
+=========================
+
+(Such As It Is)
+----------
+
+* Grabbed some weather icons in SVG off the web \\ (Thanks Alessio Atzeni!)
+
+* Printed the icons and a pointer out on paper, \\ spray-glued to cardboard
+
+* Hot-glued arrow to a servo horn, \\ and the servo motor to the back of the sign
+
+* Connect servo power up to AVR, adding an extra capacitor 
+
+* The control pin to the servo hooked up to AVR PB1: \\ a direct-out from the 16-bit Timer1 
+
+* That's it!
+
+Demo
+=====
+
+Comments
+========
+
+Custom commands are easy
+-------------------------
+
+* Intimidating at first?
+
+* Less work here than in figuring out an HID Usage report
+
+* You have to keep track of the command dictionary on the host application and in the AVR
+
+* You have to keep track of what data's being passed
+
+* But then writing one or two functions to handle it all is easy 
+
+* The cost is that you have to write host code, \\ 
+  but that's not that bad either?
+
 
 
 Resources
 =========
 
 * V-USB website and Wiki \com{ http://www.obdev.at/products/vusb/index.html}
+
+* All code, slides, etc \com{http://www.githib.com/hexagon5un/vusbWebinar}
 
 * My AVR Site: \com{www.littlehacks.org} 
 
@@ -609,14 +683,13 @@ Resources
 * "USB in a Nutshell" \com{http://www.beyondlogic.org/usbnutshell/usb1.shtml} 
 
 
-
-Questions
-==========
-
-
 Oh yeah, I wrote a book
 =======================
 
 %! images/cover_800.png
 
+
+
+Questions?
+==========
 

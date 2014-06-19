@@ -5,3 +5,46 @@
 
 * Suspend mode requires device to use very little current \\ 
 	$500 \mu A$  (but practically you can ignore this)
+
+
+
+Crazy Tricks
+============
+
+A Potpourri of Hacks:
+----------------------
+
+* Use the control messages for custom communications even though you've defined an HID device \\ 
+  lets you get around need to install drivers in Windows \\ 
+  lets you design a smart/configurable keyboard
+
+* Define your device descriptors in RAM, re-enumerate as different devices on the fly \\
+  One device?  Or muliple?
+
+* USB Jamming / Spoofing: Host-mode bus.  What happens if you disobey?
+
+* USB Sniffing: What happens if your device doesn't disregard packages meant for others?
+
+* Turn one device into another
+
+
+
+USB Voodoo (Aside)
+==========
+
+Debugging, etc 
+--------------------------------
+
+* \com{lsusb}: lists all attached USB devices \\
+	mostly useful to get VID:PID pair
+
+* \com{usbhid-dump} dumps HID descriptors or full data streams (!) \\ 
+	\com{sudo usbhid-dump -m 046d:c049 -e stream} \\ watches my mouse \\
+
+* \com{hidrd-convert} converts a binary HID descriptor to text \\ 
+	result as code, spec, or XML
+
+* Combine:\\  
+ \com{sudo usbhid-dump -m 046d:c049 | tail -n +8  \\ 
+ | xxd -r -p | hidrd-convert -o code }
+
