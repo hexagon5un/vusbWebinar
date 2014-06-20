@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 ## Stripped-down Example of Computer-VUSB Device Communication
 
 import urllib2
