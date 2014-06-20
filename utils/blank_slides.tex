@@ -1,0 +1,195 @@
+DOCUMENTCLASS
+
+\usepackage{latexsym} % For funny characters
+\usepackage{minted}
+%\usepackage{fancyvrb}
+%\usepackage{color}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+% \usepackage{mathrsfs}
+
+\usepackage{url}
+\usepackage{multimedia}
+
+\mode<presentation>{ 
+  \usecolortheme{rose}
+  \setbeamerfont{block title}{size={}}
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamercolor{background canvas}{bg=black!2}
+}
+
+
+\newcommand{\leads}{\hspace{1em}$\rightarrow$\hspace{1em}}
+\newcommand{\com}[1]{\textcolor{blue}{\bf \tt #1}}
+\newcommand{\avg}{\frac{1}{n}\sum_i}
+\newcommand{\var}{\mbox{var}}
+\newcommand{\cor}{\mbox{cor}}
+\newcommand{\cov}{\mbox{cov}}
+\newcommand{\plim}{\xrightarrow{p}}
+%% Automatically Create Per-Section Nav Info Slides
+\AtBeginSection{
+  \begin{frame}
+    \frametitle{Outline}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\title{ TITLE }
+\subtitle{ SUBTITLE }
+\date{June 20, 2014}
+\author{Elliot Williams \\ \ \\ \includegraphics[width=0.8in]{images/elliot_williams.jpg} \\ 
+{ \tt elliot@littlehacks.org } \\ 
+github: {\tt hexagon5un} 
+}
+
+\begin{document}
+  % \usestyle{default} %% for pygments/texments
+  %% Titlepage
+  \begin{frame}
+    \titlepage
+  \end{frame}
+
+  %% Outline
+  \begin{frame}[label=outline]
+    \frametitle{Outline}
+    \tableofcontents
+  \end{frame}
+
+  %% Body
+
+  CONTENT
+
+   
+  %% The end
+
+  \begin{frame}[label=theEnd]
+    \frametitle{The End}
+    \hyperlink{outline}{\beamerreturnbutton{Outline}}
+  \end{frame}
+
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Fancy Frame
+\begin{frame}
+  \frametitle{}
+  \begin{block}{}
+    \begin{itemize}[<+->]	
+    \item 
+    \item
+    \item 
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+%% Blank Frame
+\begin{frame}
+ \frametitle{}
+\end{frame}
+
+%% Labelled Blank Frame
+\begin{frame}[label=]
+ \frametitle{}
+\end{frame}
+ 
+%% Definition
+\begin{definition}
+   \alert{} 
+\end{definition}
+
+%% List in the order enumerated
+\begin{itemize}			
+\item<1->
+\item<2->
+\item<3->
+\end{itemize}
+
+%% List auto-enumeration
+\begin{itemize}[<+->]	
+\item 
+\item
+\item 
+\end{itemize}
+
+%% List  auto-enumeration, with fadeouts
+\begin{itemize}[<+-| alert@+>]	
+\item 
+\item 
+\item 
+\end{itemize}
+
+
+%% Example
+\begin{example}
+  \begin{itemize}
+  \item 
+  \item 
+  \item 
+  \end{itemize}
+\end{example}
+
+%% Description
+\begin{description}
+\item<1->[] 
+\item<2->[] 
+\item<3->[] 
+\end{description}
+
+%% Semiverbatim: lines of code displayed sequentially
+\begin{semiverbatim}
+\uncover<1->{}
+\uncover<2->{}
+\uncover<3->{}
+\end{semiverbatim}
+
+%% Block
+\begin{block}{}
+\end{block}
+
+%% Figure
+\begin{figure}
+  \caption{}
+  \includegraphics[height=2.5in]{}
+\end{figure}
+
+
+%% Blocked Columns
+\begin{columns}[t]
+  \column{.5\textwidth}
+  \begin{block}{}
+  \end{block}
+  
+  \column{.5\textwidth}
+  \begin{block}{}
+  \end{block}
+\end{columns}
+
+%% Plain Columns
+\begin{columns}[t]
+  \column{.45\textwidth}
+  \pause
+  \column{.45\textwidth}
+\end{columns}
+
+%% Goto Button
+\hyperlink{}{\beamergotobutton{}}
+%% Return Button
+\hyperlink{}{\beamerreturnbutton{}}
+%% Skip Button
+\hyperlink{}{\beamerskipbutton{}}
+  
+
+%% Appendix -- this stuff not shown, but available
+\appendix
+
+
+\begin{frame}[label=appendix]
+  \frametitle{Appendix}
+  \tableofcontents
+  \hyperlink{outline}{\beamerreturnbutton{Outline}}
+\end{frame}
+
+  
